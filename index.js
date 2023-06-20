@@ -3,12 +3,17 @@ const app = express();
 const { connection } = require("./config/db");
 const { userRouter } = require("./routes/user")
 const cors =require("cors");
+const dotenv = require("dotenv");
+const { adminRouter } = require("./routes/adminusers");
+
 
 app.use(express.json());
 app.use(cors({origin:"*"}));
 app.use("/users",userRouter);
+app.use("/adminusers",adminRouter)
 
-const  PORT = 3002;
+const  PORT = process.env.PORT || 3022;
+dotenv.config();
 
 app.get("/", async(req,res)=>{
     try{

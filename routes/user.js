@@ -1,9 +1,10 @@
 const express = require("express");
 const { userModel } = require("../models/usersModel");
+const auth = require("../middleware/auth");
 const userRouter = express.Router();
 
 //getAll
-userRouter.post("/getall", async(req, res)=>{
+userRouter.post("/getall",auth, async(req, res)=>{
     try{
         const userList = await userModel.find();
         res.send(userList)
@@ -13,19 +14,43 @@ userRouter.post("/getall", async(req, res)=>{
 });
 
 //insert
-userRouter.post("/insert", async(req, res)=>{
-    const newUser = req.body;
+userRouter.post("/insert", auth,async(req, res)=>{
     try{
-        const user = new userModel(newUser);
-        await user.save();
-        res.send("New User Added Successfully !")
+        const {name, email} = req.body;
+        const obj = await new userModel({
+            name,
+            email,
+        });
+       const users = await obj.save();
+        if(!users) {
+            res.send({
+                status: 0,
+                message: "Something went wrong with user Insertion",
+                data: "",
+              });
+        }
+        res.send({
+            status: 1,
+            message: "User inserted Successfully.",
+            data: users,
+          });
     }catch(error){
-        res.send({ "msg":"Something went wrong","error":error.message })
+        if (error.message.includes("duplicate key")) {
+            if (error.message.includes("name:")) {
+              res.send({
+                status: 0,
+                message: "User name already exists.",
+                data: "",
+              });
+            }
+          } else {
+            res.send({ status: 0, message: "Something went wrong.", data: "" });
+          }
     }
 });
 
 //update
-userRouter.post("/update", async(req,res) =>{
+userRouter.post("/update",auth, async(req,res) =>{
     const { id,name, email } = req.body;
     
     try{
@@ -44,7 +69,7 @@ userRouter.post("/update", async(req,res) =>{
  })
 
 //delete
-userRouter.post("/delete", async(req,res) => {
+userRouter.post("/delete", auth, async(req,res) => {
     const { id } = req.body;
     try{
          await userModel.findOneAndDelete({ _id: id });
@@ -53,5 +78,6 @@ userRouter.post("/delete", async(req,res) => {
         res.send({ "msg":"Something went Wrong","error":error.message })
     }
 });
+
 
 module.exports = { userRouter }
