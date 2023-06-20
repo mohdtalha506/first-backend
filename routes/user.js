@@ -1,5 +1,5 @@
 const express = require("express");
-const { userModel } = require("../models/usersModel");
+const  userModel  = require("../models/usersModel");
 const auth = require("../middleware/auth");
 const userRouter = express.Router();
 
@@ -14,7 +14,7 @@ userRouter.post("/getall",auth, async(req, res)=>{
 });
 
 //insert
-userRouter.post("/insert", auth,async(req, res)=>{
+userRouter.post("/insert", auth, async(req, res)=>{
     try{
         const {name, email} = req.body;
         const obj = await new userModel({
@@ -80,4 +80,4 @@ userRouter.post("/delete", auth, async(req,res) => {
 });
 
 
-module.exports = { userRouter }
+module.exports = userRouter 
