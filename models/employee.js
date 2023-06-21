@@ -5,17 +5,32 @@ const employeeSchema = mongoose.Schema({
   firstname: {
     type: String,
     required: true,
+    trim: true,
+    unique: true,
   },
 
   lastname: {
     type: String,
-  
+    required: true,
+    trim: true
   },
 
   code: {
     type: String,
-
+    required: true,
+    trim: true,
+    unique: true,
   },
+  password:{
+    type: String,
+    required:true,
+    trim: true,
+},
+image_url: {
+  type: String,
+  default: "",
+  trim: true,
+},
 },
 {
   timestamps: true,

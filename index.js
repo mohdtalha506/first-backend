@@ -39,7 +39,7 @@ app.use(function (err, req, res, next) {
 app.listen(PORT, async(req,res)=>{
     try{
         await connection;
-        console.log("Connected to Database");
+        console.log("Backend is running on " + PORT);
     }catch(error){
         console.log("Cant connect to Database");
     }
