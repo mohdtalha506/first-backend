@@ -29,7 +29,6 @@ const employeeSchema = mongoose.Schema({
 image_url: {
   type: String,
   default: "",
-  trim: true,
 },
 },
 {

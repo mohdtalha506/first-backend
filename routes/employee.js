@@ -2,7 +2,9 @@ const express = require("express");
 const employeeModel = require("../models/employee");
 const auth = require("../middleware/auth");
 const employee = express.Router();
-const multer = require("multer")
+const multer = require("multer");
+const bcrypt = require("bcryptjs");
+const mongoose = require('mongoose');
 
 //uploads
 const storage = multer.diskStorage({
@@ -24,27 +26,31 @@ const storage = multer.diskStorage({
   
   const upload = multer({ storage: storage, fileFilter: fileFilter });
 
-employee.post('/upload', upload.single('image_url'), (req, res) => {
-    // Access the uploaded file via req.file
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
+// employee.post('/upload', upload.single('image_url'), (req, res) => {
+//     // Access the uploaded file via req.file
+//     if (!req.file) {
+//       return res.status(400).json({ error: 'No file uploaded' });
+//     }
   
-    // Process the uploaded file and store the necessary data in the database
+//     // Process the uploaded file and store the necessary data in the database
   
-    return res.status(200).json({ message: 'Image uploaded successfully' });
-  });
+//     return res.status(200).json({ message: 'Image uploaded successfully' });
+//   });
   
 
 //insert
-employee.post("/insert", auth, async(req,res)=>{
-    try{
-        const { firstname, lastname, code,password } = req.body;
-        const obj = new employeeModel({
+employee.post("/insert",upload.single("image_url"), async(req,res)=>{
+  const { firstname, lastname, code,password } = req.body;
+  const image_url=req.file; 
+  try{  
+        
+    const hashedPassword = await bcrypt.hash(password,5)
+    const obj = new employeeModel({
             firstname,
             lastname,
             code,
-            password
+            password: hashedPassword,
+            image_url: image_url.path, 
         });
          const employee = await obj.save();
          if (!employee) {
@@ -98,6 +104,29 @@ employee.post("/getall", auth, async (req, res) => {
   });
 
 
+//update Password
+employee.post("/updatePassword", auth, async(req,res)=>{
 
+  const { id, oldpass , newpass } = req.body;
+  try{
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid employee ID.' });
+    }
+    const employee = await employeeModel.findById(id)
+    if(!employee){
+      return res.status({ status: 0, message: "Employee not found"})
+    }
+    const passwordmatch = await bcrypt.compare(oldpass, employee.password)
+    if(!passwordmatch){
+      return res.status({status: 1, message: "current passwordis incorrect"})
+    }
+    const hashedPassword = await bcrypt.hash(newpass, 5);
+    employee.password = hashedPassword;
+    await employee.save();
+
+  }catch(error){
+ res.send({ status: 0, message: error.message, data: error });
+  }
+})
 
 module.exports = employee
